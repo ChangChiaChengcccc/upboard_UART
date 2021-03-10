@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vins_uart/serial.hpp>
 #include <sensor_msgs/Imu.h>
+#include <geometry_msgs/WrenchStamped.h>
 #include <std_msgs/Int32.h>
 #include <imu_thread.h>
 #include "ros/ros.h"
@@ -33,7 +34,7 @@ double calc_deviation(float* x){
 
 uint8_t generate_imu_checksum_byte(uint8_t *payload, int payload_count)
 {
-	uint8_t result = IMU_CHECKSUM_INIT_VAL;
+	uint8_t result = 0;
 
 	int i;
 	for(i = 0; i < payload_count; i++)
@@ -45,22 +46,26 @@ uint8_t generate_imu_checksum_byte(uint8_t *payload, int payload_count)
 int imu_decode(uint8_t *buf){
 	static float x_array_uart[100];
 	uint8_t recv_checksum = buf[1];
-	uint8_t checksum = generate_imu_checksum_byte(&buf[3], IMU_SERIAL_MSG_SIZE - 3);
+	uint8_t checksum = generate_imu_checksum_byte(&buf[2], IMU_SERIAL_MSG_SIZE - 3);
 	if(checksum != recv_checksum) {
+		printf("oh no grabage message!\n");
 		return 1; //error detected
 	}
-	float enu_acc_x, enu_acc_y, enu_acc_z;
 
-	memcpy(&enu_acc_x, &buf[2], sizeof(float)); //in ned coordinate system
-	memcpy(&enu_acc_y, &buf[6], sizeof(float));
-	memcpy(&enu_acc_z, &buf[10], sizeof(float));
-	imu.acc[0] = enu_acc_x; //east
-	imu.acc[1] = enu_acc_y; //north
-	imu.acc[2] = enu_acc_z; //up
+	memcpy(&imu.thrust, &buf[2], sizeof(float));
+
+	// float enu_acc_x, enu_acc_y, enu_acc_z;
+
+	// memcpy(&enu_acc_x, &buf[2], sizeof(float)); //in ned coordinate system
+	// memcpy(&enu_acc_y, &buf[6], sizeof(float));
+	// memcpy(&enu_acc_z, &buf[10], sizeof(float));
+	// imu.acc[0] = enu_acc_x; //east
+	// imu.acc[1] = enu_acc_y; //north
+	// imu.acc[2] = enu_acc_z; //up
 	/* swap the order of quaternion to make the frame consistent with ahrs' rotation order */
-	memcpy(&imu.gyrop[0], &buf[14], sizeof(float));
-	memcpy(&imu.gyrop[1], &buf[18], sizeof(float));
-	memcpy(&imu.gyrop[2], &buf[22], sizeof(float));
+	memcpy(&imu.gyrop[0], &buf[6], sizeof(float));
+	memcpy(&imu.gyrop[1], &buf[10], sizeof(float));
+	memcpy(&imu.gyrop[2], &buf[14], sizeof(float));
 	
 	return 0;
 
@@ -88,37 +93,55 @@ void imu_buf_push(uint8_t c)
 
 int imu_thread_entry(){
 	sensor_msgs::Imu IMU_data;
+	geometry_msgs::WrenchStamped thrust_data;
 	ros::NodeHandle n;
-	ros::Publisher pub = n.advertise<sensor_msgs::Imu>("imu/data_raw", 5);
+	ros::Publisher omega_pub = n.advertise<sensor_msgs::Imu>("imu/data_raw", 5);
+	ros::Publisher thrust_pub = n.advertise<geometry_msgs::WrenchStamped>("/rotor_all_ft", 5);
 	char c;
 	imu.buf_pos = 0;
+	int count1 =0;
 	while(ros::ok()){
 		if(serial_getc(&c) != -1) {
-			imu_buf_push(c); 
-			if(imu.buf[0]=='@' && imu.buf[IMU_SERIAL_MSG_SIZE-1] == '+')
+			imu_buf_push(c);
+			/*
+			if(c == '-')
+				count1 = 1;
+			else if(c == '+') {
+				count1++; 
+				printf("count : %d\n",count1);}
+			else 
+				count1++; 
+			
+			*/
+
+			if(imu.buf[0]=='@' && imu.buf[IMU_SERIAL_MSG_SIZE - 1 ] == '+')
 			{
-				/*
+				
+			
 				for(int i =0;i<IMU_SERIAL_MSG_SIZE;i++)
 					cout << imu.buf[i];
 				cout<<endl;
-				*/
+				
 				if(imu_decode(imu.buf)==0)
 				{
 					IMU_data.header.stamp = ros::Time::now();
 					IMU_data.header.frame_id = "base_link";
 					// imu.acc is ned , IMU_data should be enu
-					IMU_data.linear_acceleration.x = imu.acc[1];
-					IMU_data.linear_acceleration.y = imu.acc[0];
-					IMU_data.linear_acceleration.z = -imu.acc[2];
-					IMU_data.angular_velocity.x = imu.gyrop[1]*M_PI/180.0f;
-					IMU_data.angular_velocity.y = imu.gyrop[0]*M_PI/180.0f;
-					IMU_data.angular_velocity.z = -imu.gyrop[2]*M_PI/180.0f;
+					// IMU_data.linear_acceleration.x = imu.thrust;
+					thrust_data.wrench.force.z = imu.thrust;
+					// IMU_data.linear_acceleration.y = imu.acc[0];
+					// IMU_data.linear_acceleration.z = -imu.acc[2];
+					IMU_data.angular_velocity.x = imu.gyrop[0]*M_PI/180.0f;
+					IMU_data.angular_velocity.y = imu.gyrop[1]*M_PI/180.0f;
+					IMU_data.angular_velocity.z = -imu.gyrop[2]*M_PI/180.0f;	//*M_PI/180.0f
 					IMU_data.angular_velocity_covariance={1.2184696791468346e-07, 0.0, 0.0, 0.0, 1.2184696791468346e-07, 0.0, 0.0, 0.0, 1.2184696791468346e-07};
 					IMU_data.linear_acceleration_covariance={8.999999999999999e-08, 0.0, 0.0, 0.0, 8.999999999999999e-08, 0.0, 0.0, 0.0, 8.999999999999999e-08};
 
-					pub.publish(IMU_data);
+					omega_pub.publish(IMU_data);
+					thrust_pub.publish(thrust_data);
 				}
 			}
+			
 		}
 		
 	}

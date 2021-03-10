@@ -7,9 +7,8 @@
 
 using namespace std;
 
-main(int argc ,char **argv){
-
-	ros::init(argc,argv,"vins_uart");           
+int main(int argc ,char **argv){
+	ros::init(argc,argv,"vins_uart");        
 	serial_init((char *)"/dev/ttyUSB0", 115200);
 	std::thread thread_imu(imu_thread_entry);	//get_imu data from stm32
 	std::thread thread_ros(ros_thread_entry);	//push imu data to ROS and recieve position data from ROS

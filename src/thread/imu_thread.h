@@ -1,17 +1,19 @@
 #ifndef __IMU_THREAD_H__
 #define __IMU_THREAD_H__
 
-#define IMU_SERIAL_MSG_SIZE 27 
+#define IMU_SERIAL_MSG_SIZE 19
 #define IMU_CHECKSUM_INIT_VAL 19
 typedef struct {
 	
-	float acc[3];
+	//float acc[3];
+
+	float thrust;
 
 	float gyrop[3];
 
 	volatile int buf_pos;
 
-	double deviation_acc;	
+	double deviation_acc;
 
 	uint8_t buf[];
 	
