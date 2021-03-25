@@ -78,10 +78,10 @@ void serial_puts(char *s, size_t size)
 	write(serial_fd, s, size);
 }
 
-#define VINS_MONO_CHECKSUM_INIT_VAL 19
-static uint8_t generate_vins_mono_checksum_byte(uint8_t *payload, int payload_count)
+#define FORCE_CHECKSUM_INIT_VAL 19
+static uint8_t generate_force_checksum_byte(uint8_t *payload, int payload_count)
 {
-	uint8_t result = VINS_MONO_CHECKSUM_INIT_VAL;
+	uint8_t result = FORCE_CHECKSUM_INIT_VAL;
 
 	int i;
 	for(i = 0; i < payload_count; i++)
@@ -89,10 +89,8 @@ static uint8_t generate_vins_mono_checksum_byte(uint8_t *payload, int payload_co
 
 	return result;
 }
-#define VINS_MONO_SERIAL_MSG_SIZE 44
-void send_pose_to_serial(float pos_x_m, float pos_y_m, float pos_z_m,
-			 float quat_x, float quat_y, float quat_z, float quat_w,
-			 float vel_x,float vel_y,float vel_z)
+#define FORCE_SERIAL_MSG_SIZE 16
+void send_pose_to_serial(float force_x, float force_y, float force_z)
 {
 /*
 	ROS_INFO("[%fHz], position=(x:%.2f, y:%.2f, z:%.2f), "
@@ -102,7 +100,7 @@ void send_pose_to_serial(float pos_x_m, float pos_y_m, float pos_z_m,
              	pos_x_m * 100.0f, pos_y_m * 100.0f, pos_z_m * 100.0f,
                  quat_x *100.0f , quat_y *100.0f, quat_z *100.0f, quat_w,vel_x,vel_y,vel_z);
 */
-	char msg_buf[VINS_MONO_SERIAL_MSG_SIZE] = {0};
+	char msg_buf[FORCE_SERIAL_MSG_SIZE] = {0};
 	int msg_pos = 0;
 
 	/* reserve 2 for start byte and checksum byte as header */
@@ -114,35 +112,19 @@ void send_pose_to_serial(float pos_x_m, float pos_y_m, float pos_z_m,
 	msg_pos += sizeof(uint8_t);
 
 	/* pack payloads */
-	//pose enu
-	memcpy(msg_buf + msg_pos, &pos_x_m, sizeof(float));
+	//force
+	memcpy(msg_buf + msg_pos, &force_x, sizeof(float));
 	msg_pos += sizeof(float);
-	memcpy(msg_buf + msg_pos, &pos_y_m, sizeof(float));
+	memcpy(msg_buf + msg_pos, &force_y, sizeof(float));
 	msg_pos += sizeof(float);
-	memcpy(msg_buf + msg_pos, &pos_z_m, sizeof(float));
-	msg_pos += sizeof(float);
-	//velocity enu
-	memcpy(msg_buf + msg_pos, &vel_x, sizeof(float));
-	msg_pos += sizeof(float);
-	memcpy(msg_buf + msg_pos, &vel_y, sizeof(float));
-	msg_pos += sizeof(float);
-	memcpy(msg_buf + msg_pos, &vel_z, sizeof(float));
-	msg_pos += sizeof(float);
-	//rotation_q ned
-	memcpy(msg_buf + msg_pos, &quat_w, sizeof(float));
-	msg_pos += sizeof(float);
-	memcpy(msg_buf + msg_pos, &quat_x, sizeof(float));
-	msg_pos += sizeof(float);
-	memcpy(msg_buf + msg_pos, &quat_y, sizeof(float));
-	msg_pos += sizeof(float);
-	memcpy(msg_buf + msg_pos, &quat_z, sizeof(float));
+	memcpy(msg_buf + msg_pos, &force_z, sizeof(float));
 	msg_pos += sizeof(float);
 
-        msg_buf[msg_pos] = '+'; //end byte
+    msg_buf[msg_pos] = '+'; //end byte
 	msg_pos += sizeof(uint8_t);
 
 	/* generate and fill the checksum field */
-	msg_buf[1] = generate_vins_mono_checksum_byte((uint8_t *)&msg_buf[3], VINS_MONO_SERIAL_MSG_SIZE - 4);
+	msg_buf[1] = generate_force_checksum_byte((uint8_t *)&msg_buf[3], VINS_MONO_SERIAL_MSG_SIZE - 4);
 
 	serial_puts(msg_buf, VINS_MONO_SERIAL_MSG_SIZE);
 }

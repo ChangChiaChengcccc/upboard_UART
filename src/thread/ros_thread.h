@@ -1,7 +1,7 @@
-#include <nav_msgs/Odometry.h>      
+#include "geometry_msgs/Point.h"    
 #ifndef __ROS_THREAD_H__
 #define __ROS_THREAD_H__
-void odom_callback(nav_msgs::Odometry odom); 
+void force_callback(geometry_msgs::Point force); 
 
 int ros_thread_entry();
 
