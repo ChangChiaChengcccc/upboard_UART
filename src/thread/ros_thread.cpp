@@ -18,7 +18,7 @@ void force_callback(geometry_msgs::Point force)
 	send_pose_to_serial( 
 				force.x,
 				force.y,
-				force.z,
+				force.z
 			);
 }
 int ros_thread_entry(){

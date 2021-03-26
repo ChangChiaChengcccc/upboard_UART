@@ -124,9 +124,9 @@ void send_pose_to_serial(float force_x, float force_y, float force_z)
 	msg_pos += sizeof(uint8_t);
 
 	/* generate and fill the checksum field */
-	msg_buf[1] = generate_force_checksum_byte((uint8_t *)&msg_buf[3], VINS_MONO_SERIAL_MSG_SIZE - 4);
+	msg_buf[1] = generate_force_checksum_byte((uint8_t *)&msg_buf[3], FORCE_SERIAL_MSG_SIZE - 4);
 
-	serial_puts(msg_buf, VINS_MONO_SERIAL_MSG_SIZE);
+	serial_puts(msg_buf, FORCE_SERIAL_MSG_SIZE);
 }
 
 int serial_getc(char *c)
