@@ -78,7 +78,7 @@ void serial_puts(char *s, size_t size)
 	write(serial_fd, s, size);
 }
 
-#define FORCE_CHECKSUM_INIT_VAL 19
+#define FORCE_CHECKSUM_INIT_VAL 0
 static uint8_t generate_force_checksum_byte(uint8_t *payload, int payload_count)
 {
 	uint8_t result = FORCE_CHECKSUM_INIT_VAL;
