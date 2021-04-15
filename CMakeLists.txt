@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(vins_uart)
+project(upboard_ukf)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 add_compile_options(-std=c++11)
@@ -107,7 +107,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
   INCLUDE_DIRS include
-  LIBRARIES vins_uart
+  LIBRARIES upboard_ukf
   CATKIN_DEPENDS roscpp rospy std_msgs
   DEPENDS system_lib
 )
@@ -219,12 +219,12 @@ include_directories(
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
 
-add_executable(vins_to_controller
+add_executable(ukf_to_controller
   src/main.cpp
   src/serial.cpp
   src/thread/imu_thread.cpp
   src/thread/ros_thread.cpp
 )
-target_link_libraries(vins_to_controller
+target_link_libraries(ukf_to_controller
   ${catkin_LIBRARIES}
 )
