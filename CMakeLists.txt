@@ -14,6 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
   nav_msgs
   tf2_ros
   sensor_msgs
+  geometry_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -108,7 +109,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES upboard_ukf
-  CATKIN_DEPENDS roscpp rospy std_msgs
+  CATKIN_DEPENDS roscpp rospy std_msgs geometry_msgs
   DEPENDS system_lib
 )
 
@@ -128,7 +129,7 @@ set(INC
 include_directories(
  include
   ${catkin_INCLUDE_DIRS}
-  ${vins_uart_INCLUDE_DIRS}
+  ${upboard_ukf_INCLUDE_DIRS}
   ${INC}
 )
 

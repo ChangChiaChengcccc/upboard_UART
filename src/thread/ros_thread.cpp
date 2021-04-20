@@ -23,7 +23,7 @@ void force_callback(geometry_msgs::Point force)
 }
 int ros_thread_entry(){
 	
-	ros::NodeHandle n;	
+	ros::NodeHandle n;
 	ros::Subscriber sub = n.subscribe("force_estimate",1000,force_callback);
 	
 	ros::spin();
