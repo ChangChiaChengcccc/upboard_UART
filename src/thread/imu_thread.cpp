@@ -7,8 +7,15 @@
 #include "ros/ros.h"
 #include <mutex>
 #include <cmath>
+#include <geometry_msgs/Point.h>
+#include "std_msgs/String.h"
+#include <nav_msgs/Odometry.h>
+#include "upboard_ukf/serial.hpp"
+#include "ros_thread.h"
 
 using namespace std;
+
+float ukf_force[3] = {0};
 
 mutex imu_mutex;
 imu_t imu;
@@ -30,6 +37,7 @@ double calc_deviation(float* x){
 	return result;
 }
 
+void send_force_to_imu_thread(float* output_force);
 
 uint8_t generate_imu_checksum_byte(uint8_t *payload, int payload_count)
 {
@@ -90,10 +98,18 @@ void imu_buf_push(uint8_t c)
 	}
 }
 
+void force_cb(geometry_msgs::Point force)
+{
+	ukf_force[0] = force.x;
+	ukf_force[1] = force.y;
+	ukf_force[2] = force.z;
+}
+
 int imu_thread_entry(){
 	sensor_msgs::Imu IMU_data;
 	geometry_msgs::WrenchStamped thrust_data;
 	ros::NodeHandle n;
+	ros::Subscriber sub = n.subscribe("force_estimate",1000,force_cb);
 	ros::Publisher omega_pub = n.advertise<sensor_msgs::Imu>("imu/data_raw", 5);
 	ros::Publisher thrust_pub = n.advertise<geometry_msgs::WrenchStamped>("/rotor_all_ft", 5);
 	char c;
@@ -115,11 +131,9 @@ int imu_thread_entry(){
 
 			if(imu.buf[0]=='@' && imu.buf[IMU_SERIAL_MSG_SIZE - 1 ] == '+')
 			{
-				
-			
 				for(int i =0;i<IMU_SERIAL_MSG_SIZE;i++)
-					cout << imu.buf[i];
-				cout<<endl;
+					cout << "s";
+				printf("\t UKF estimated force  x: %f  y: %f  z: %f\n", ukf_force[0], ukf_force[1], ukf_force[2]);
 				
 				if(imu_decode(imu.buf)==0)
 				{

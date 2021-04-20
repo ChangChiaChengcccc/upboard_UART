@@ -1,3 +1,4 @@
+#include "geometry_msgs/Point.h"
 #ifndef __IMU_THREAD_H__
 #define __IMU_THREAD_H__
 
@@ -18,6 +19,8 @@ typedef struct {
 	uint8_t buf[];
 	
 } imu_t ;
+
+void force_cb(geometry_msgs::Point force);
 
 double calc_deviation(double*);
 
