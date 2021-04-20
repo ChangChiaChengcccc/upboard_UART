@@ -118,7 +118,7 @@ int imu_thread_entry(){
 				
 			
 				for(int i =0;i<IMU_SERIAL_MSG_SIZE;i++)
-					cout << imu.buf[i];
+					cout << "s";
 				cout<<endl;
 				
 				if(imu_decode(imu.buf)==0)
