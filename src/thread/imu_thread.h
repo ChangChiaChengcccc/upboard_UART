@@ -2,8 +2,8 @@
 #ifndef __IMU_THREAD_H__
 #define __IMU_THREAD_H__
 
-#define IMU_SERIAL_MSG_SIZE 19
-#define IMU_CHECKSUM_INIT_VAL 19
+#define IMU_SERIAL_MSG_SIZE 19 + 4 //yaw
+#define IMU_CHECKSUM_INIT_VAL 0
 typedef struct {
 	
 	//float acc[3];
@@ -11,6 +11,8 @@ typedef struct {
 	float thrust;
 
 	float gyrop[3];
+
+	float yaw;
 
 	volatile int buf_pos;
 
