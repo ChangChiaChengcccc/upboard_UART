@@ -2,7 +2,7 @@
 #ifndef __IMU_THREAD_H__
 #define __IMU_THREAD_H__
 
-#define IMU_SERIAL_MSG_SIZE 19 + 4 //yaw
+#define IMU_SERIAL_MSG_SIZE (19 + 4) //yaw
 #define IMU_CHECKSUM_INIT_VAL 0
 typedef struct {
 	
