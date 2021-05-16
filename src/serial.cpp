@@ -7,6 +7,7 @@
 #include <inttypes.h>
 #include <string>
 #include "ros/ros.h"
+#include <queue>
 
 using namespace std;
 
@@ -90,7 +91,7 @@ static uint8_t generate_force_checksum_byte(uint8_t *payload, int payload_count)
 	return result;
 }
 #define FORCE_SERIAL_MSG_SIZE 16
-void send_pose_to_serial(float force_x, float force_y, float force_z)
+void send_pose_to_serial(std::queue<float> send_to_stm32)
 {
 /*
 	ROS_INFO("[%fHz], position=(x:%.2f, y:%.2f, z:%.2f), "
@@ -100,7 +101,8 @@ void send_pose_to_serial(float force_x, float force_y, float force_z)
              	pos_x_m * 100.0f, pos_y_m * 100.0f, pos_z_m * 100.0f,
                  quat_x *100.0f , quat_y *100.0f, quat_z *100.0f, quat_w,vel_x,vel_y,vel_z);
 */
-	char msg_buf[FORCE_SERIAL_MSG_SIZE] = {0};
+	int message_size = send_to_stm32.size();
+	char msg_buf[message_size] = {0};
 	int msg_pos = 0;
 
 	/* reserve 2 for start byte and checksum byte as header */
@@ -113,20 +115,27 @@ void send_pose_to_serial(float force_x, float force_y, float force_z)
 
 	/* pack payloads */
 	//force
-	memcpy(msg_buf + msg_pos, &force_x, sizeof(float));
-	msg_pos += sizeof(float);
-	memcpy(msg_buf + msg_pos, &force_y, sizeof(float));
-	msg_pos += sizeof(float);
-	memcpy(msg_buf + msg_pos, &force_z, sizeof(float));
-	msg_pos += sizeof(float);
+	// memcpy(msg_buf + msg_pos, &force_x, sizeof(float));
+	// msg_pos += sizeof(float);
+	// memcpy(msg_buf + msg_pos, &force_y, sizeof(float));
+	// msg_pos += sizeof(float);
+	// memcpy(msg_buf + msg_pos, &force_z, sizeof(float));
+	// msg_pos += sizeof(float);
+
+	while(!send_to_stm32.empty())
+	{
+		memcpy(msg_buf + msg_pos, &send_to_stm32.front(), sizeof(float));
+		msg_pos += sizeof(float);
+		send_to_stm32.pop();
+	}
 
     msg_buf[msg_pos] = '+'; //end byte
 	msg_pos += sizeof(uint8_t);
 
 	/* generate and fill the checksum field */
-	msg_buf[1] = generate_force_checksum_byte((uint8_t *)&msg_buf[3], FORCE_SERIAL_MSG_SIZE - 4);
+	msg_buf[1] = generate_force_checksum_byte((uint8_t *)&msg_buf[3], message_size - 4);
 
-	serial_puts(msg_buf, FORCE_SERIAL_MSG_SIZE);
+	serial_puts(msg_buf, message_size);
 }
 
 int serial_getc(char *c)
