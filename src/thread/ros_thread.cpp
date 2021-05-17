@@ -19,6 +19,7 @@ void ukf_force_callback(geometry_msgs::Point force)
 	send_to_stm32.push(force.y);
 	send_to_stm32.push(force.z);
 	send_pose_to_serial(send_to_stm32);
+	send_to_stm32 = queue<float>();
 }
 
 void controller_force_callback(geometry_msgs::Point force)
@@ -26,11 +27,13 @@ void controller_force_callback(geometry_msgs::Point force)
 	send_to_stm32.push(force.x);
 	send_to_stm32.push(force.y);
 	send_pose_to_serial(send_to_stm32);
+	send_to_stm32 = queue<float>();
 }
+
 int ros_thread_entry(){
 	ros::NodeHandle n;
 	ros::Subscriber ukf_sub = n.subscribe("force_estimate",1000,ukf_force_callback);
-	ros::Subscriber ctrl_sub = n.subscribe("/controller_force",1000,controller_force_callback);
+	//ros::Subscriber ctrl_sub = n.subscribe("/controller_force",1000,controller_force_callback);
 	ros::spin();
 	return 0;
 }

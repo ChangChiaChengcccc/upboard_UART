@@ -101,8 +101,8 @@ void send_pose_to_serial(std::queue<float> send_to_stm32)
              	pos_x_m * 100.0f, pos_y_m * 100.0f, pos_z_m * 100.0f,
                  quat_x *100.0f , quat_y *100.0f, quat_z *100.0f, quat_w,vel_x,vel_y,vel_z);
 */
-	int message_size = send_to_stm32.size();
-	char msg_buf[message_size] = {0};
+	int message_size = send_to_stm32.size() + 4;
+	char msg_buf[FORCE_SERIAL_MSG_SIZE] = {0};
 	int msg_pos = 0;
 
 	/* reserve 2 for start byte and checksum byte as header */
@@ -122,7 +122,13 @@ void send_pose_to_serial(std::queue<float> send_to_stm32)
 	// memcpy(msg_buf + msg_pos, &force_z, sizeof(float));
 	// msg_pos += sizeof(float);
 
-	while(!send_to_stm32.empty())
+	//while(!send_to_stm32.empty())
+	//{
+	//	memcpy(msg_buf + msg_pos, &send_to_stm32.front(), sizeof(float));
+	//	msg_pos += sizeof(float);
+	//	send_to_stm32.pop();
+	//}
+	for(int i=0;i<message_size-4;i++)
 	{
 		memcpy(msg_buf + msg_pos, &send_to_stm32.front(), sizeof(float));
 		msg_pos += sizeof(float);
