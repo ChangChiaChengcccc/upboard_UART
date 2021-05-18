@@ -35,8 +35,20 @@ void controller_force_callback(geometry_msgs::Point force)
 
 int ros_thread_entry(){
 	ros::NodeHandle n;
-	ros::Subscriber ukf_sub = n.subscribe("force_estimate",1000,ukf_force_callback);
-	//ros::Subscriber ctrl_sub = n.subscribe("/controller_force",1000,controller_force_callback);
+	std::string MAV = "";
+	n.getParam("MAV", MAV);
+	if(MAV == "leader")
+	{
+		ros::Subscriber ctrl_sub = n.subscribe("/controller_force",1000,controller_force_callback);
+	}
+	else if(MAV == "follower")
+	{
+		ros::Subscriber ukf_sub = n.subscribe("force_estimate",1000,ukf_force_callback);
+	}
+	else
+	{
+		ROS_INFO("Error! Please input the MAV type ex.leader, follower");
+	}
 	ros::spin();
 	return 0;
 }
