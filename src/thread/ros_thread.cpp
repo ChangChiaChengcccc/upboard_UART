@@ -15,19 +15,22 @@ queue<float> send_to_stm32;
 
 void ukf_force_callback(geometry_msgs::Point force)
 {
-	send_to_stm32.push(force.x);
-	send_to_stm32.push(force.y);
-	send_to_stm32.push(force.z);
-	send_pose_to_serial(send_to_stm32);
-	send_to_stm32 = queue<float>();
+	// send_to_stm32.push(force.x);
+	// send_to_stm32.push(force.y);
+	// send_to_stm32.push(force.z);
+	// send_pose_to_serial(send_to_stm32);
+	// send_to_stm32 = queue<float>();
+	send_pose_to_serial(force.x, force.y, force.z);
 }
 
 void controller_force_callback(geometry_msgs::Point force)
 {
-	send_to_stm32.push(force.x);
-	send_to_stm32.push(force.y);
-	send_pose_to_serial(send_to_stm32);
-	send_to_stm32 = queue<float>();
+	// send_to_stm32.push(force.x);
+	// send_to_stm32.push(force.y);
+	// send_to_stm32.push(force.z);
+	// send_pose_to_serial(send_to_stm32);
+	// send_to_stm32 = queue<float>();
+	send_pose_to_serial(force.x, force.y, force.z);
 }
 
 int ros_thread_entry(){
