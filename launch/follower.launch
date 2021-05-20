@@ -1,7 +1,6 @@
 <launch>
   <include file="$(find vrpn_client_ros)/launch/sample.launch" />
-  <node name="ukf_to_controller" pkg="upboard_ukf" type="ukf_to_controller" output="screen">
-    <param name = "MAV" type = "string" value = "follower" />
-  </node>
+  <param name = "MAV" type = "string" value = "follower" />
+  <node name="ukf_to_controller" pkg="upboard_ukf" type="ukf_to_controller" output="screen"/>
   <node name="first_ukf" pkg="first_ukf" type="first_ukf"/>
 </launch>
