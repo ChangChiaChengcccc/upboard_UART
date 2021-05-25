@@ -119,9 +119,10 @@ catkin_package(
 
 
 set(INC
-    ./ 
+    ./
     ./src
     ./src/thread
+    ../proj
 )
 
 ## Specify additional locations of header files

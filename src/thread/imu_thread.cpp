@@ -69,8 +69,6 @@ int imu_decode(uint8_t *buf){
 	memcpy(&imu.gyrop[1], &buf[10], sizeof(float));
 	memcpy(&imu.gyrop[2], &buf[14], sizeof(float));
 
-	memcpy(&imu.yaw, &buf[18], sizeof(float));
-
 	return 0;
 }
 
@@ -103,7 +101,6 @@ void force_cb(geometry_msgs::Point force)
 int imu_thread_entry(){
 	sensor_msgs::Imu IMU_data;
 	geometry_msgs::WrenchStamped thrust_data;
-	geometry_msgs::Pose2D stm32_payload_yaw_data;
 	ros::NodeHandle n;
 	ros::Subscriber sub = n.subscribe("force_estimate",1000,force_cb);
 	ros::Publisher omega_pub = n.advertise<sensor_msgs::Imu>("imu/data_raw", 5);
@@ -119,11 +116,11 @@ int imu_thread_entry(){
 			if(c == '-')
 				count1 = 1;
 			else if(c == '+') {
-				count1++; 
+				count1++;
 				printf("count : %d\n",count1);}
-			else 
-				count1++; 
-			
+			else
+				count1++;
+
 			*/
 
 			if(imu.buf[0]=='@' && imu.buf[IMU_SERIAL_MSG_SIZE - 1 ] == '+')
@@ -131,7 +128,6 @@ int imu_thread_entry(){
 				for(int i =0;i<IMU_SERIAL_MSG_SIZE;i++)
 					cout << "s";
 				printf("\t UKF estimated force  x: %f  y: %f  z: %f\n", ukf_force[0], ukf_force[1], ukf_force[2]);
-				
 				if(imu_decode(imu.buf)==0)
 				{
 					IMU_data.header.stamp = ros::Time::now();
@@ -147,17 +143,10 @@ int imu_thread_entry(){
 					IMU_data.angular_velocity_covariance={1.2184696791468346e-07, 0.0, 0.0, 0.0, 1.2184696791468346e-07, 0.0, 0.0, 0.0, 1.2184696791468346e-07};
 					IMU_data.linear_acceleration_covariance={8.999999999999999e-08, 0.0, 0.0, 0.0, 8.999999999999999e-08, 0.0, 0.0, 0.0, 8.999999999999999e-08};
 
-					stm32_payload_yaw_data.x = 0.0f;
-					stm32_payload_yaw_data.y = 0.0f;
-					stm32_payload_yaw_data.theta = imu.yaw;
-
 					omega_pub.publish(IMU_data);
 					thrust_pub.publish(thrust_data);
-					yaw_pub.publish(stm32_payload_yaw_data);
 				}
 			}
-			
 		}
-		
 	}
 }

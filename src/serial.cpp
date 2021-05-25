@@ -91,9 +91,16 @@ static uint8_t generate_force_checksum_byte(uint8_t *payload, int payload_count)
 	return result;
 }
 
-#define FORCE_SERIAL_MSG_SIZE 16
 // void send_pose_to_serial(std::queue<float> send_to_stm32)
+#if (MAV_SELECT == LEADER)
+#define FORCE_SERIAL_MSG_SIZE 16
 void send_pose_to_serial(float force_x, float force_y, float force_z)
+#endif
+
+#if (MAV_SELECT == FOLLOWER) && (MAV_SELECT!=LEADER)
+#define FORCE_SERIAL_MSG_SIZE 20
+void send_pose_to_serial(float force_x, float force_y, float force_z, float payload_yaw)
+#endif
 {
 /*
 	ROS_INFO("[%fHz], position=(x:%.2f, y:%.2f, z:%.2f), "
@@ -123,6 +130,11 @@ void send_pose_to_serial(float force_x, float force_y, float force_z)
 	msg_pos += sizeof(float);
 	memcpy(msg_buf + msg_pos, &force_z, sizeof(float));
 	msg_pos += sizeof(float);
+
+#if (MAV_SELECT == FOLLOWER) && (MAV_SELECT!=LEADER)
+	memcpy(msg_buf + msg_pos, &payload_yaw, sizeof(float));
+	msg_pos += sizeof(float);
+#endif
 
 	//while(!send_to_stm32.empty())
 	//{
