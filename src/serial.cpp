@@ -101,6 +101,7 @@ static uint8_t generate_force_checksum_byte(uint8_t *payload, int payload_count)
 
 // void send_pose_to_serial(std::queue<float> send_to_stm32)
 void send_pose_to_serial(float *send_to_serial_msg)
+//void send_pose_to_serial(float force_x, float force_y, float force_z, float payload_yaw)
 {
 /*
 	ROS_INFO("[%fHz], position=(x:%.2f, y:%.2f, z:%.2f), "

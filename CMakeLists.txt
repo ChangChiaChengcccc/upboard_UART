@@ -129,9 +129,9 @@ set(INC
 ## Your package locations should be listed before other locations
 include_directories(
  include
+  ${INC}
   ${catkin_INCLUDE_DIRS}
   ${upboard_ukf_INCLUDE_DIRS}
-  ${INC}
 )
 
 ## Declare a C++ library

@@ -5,14 +5,13 @@
 #ifndef __ROS_THREAD_H__
 #define __ROS_THREAD_H__
 
-#if (MAV_SELECT == FOLLOWER) && (MAV_SELECT!=LEADER)
+//#if (MAV_SELECT == FOLLOWER)
 void ukf_force_callback(geometry_msgs::Point force);
 void optitrack_callback(const geometry_msgs::PoseStamped::ConstPtr& msg);
-#endif
 
-#if (MAV_SELECT == LEADER)
+//#else
 void controller_force_callback(geometry_msgs::Point force);
-#endif
+//#endif
 
 int ros_thread_entry();
 

@@ -126,8 +126,8 @@ int imu_thread_entry(){
 			if(imu.buf[0]=='@' && imu.buf[IMU_SERIAL_MSG_SIZE - 1 ] == '+')
 			{
 				for(int i =0;i<IMU_SERIAL_MSG_SIZE;i++)
-					cout << "s";
-				printf("\t UKF estimated force  x: %f  y: %f  z: %f\n", ukf_force[0], ukf_force[1], ukf_force[2]);
+					//////////cout << "s";
+				////////printf("\t UKF estimated force  x: %f  y: %f  z: %f\n", ukf_force[0], ukf_force[1], ukf_force[2]);
 				if(imu_decode(imu.buf)==0)
 				{
 					IMU_data.header.stamp = ros::Time::now();
