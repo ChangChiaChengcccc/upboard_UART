@@ -25,7 +25,8 @@ void ukf_force_callback(geometry_msgs::Point force)
 	// send_to_stm32 = queue<float>();
 	//send_pose_to_serial(force.x, force.y, force.z);
 	//ROS_INFO_STREAM("MAV is " << MAV_);
-	send_pose_to_serial(force.x, force.y, force.z, ground_truth_yaw);
+	float follower_send_to_serial[5] = {4.0f, force.x, force.y, force.z, ground_truth_yaw};
+	send_pose_to_serial(follower_send_to_serial);
 }
 
 void optitrack_callback(const geometry_msgs::PoseStamped::ConstPtr& msg)
@@ -53,7 +54,8 @@ void controller_force_callback(geometry_msgs::Point force)
 	// send_pose_to_serial(send_to_stm32);
 	// send_to_stm32 = queue<float>();
 	// send_pose_to_serial(force.x, force.y, force.z);
-	send_pose_to_serial(force.x, force.y, force.z);
+	float leader_send_to_serial[4] = {3.0f, float(force.x), float(force.y), float(force.z)};
+	send_pose_to_serial(leader_send_to_serial);
 }
 #endif
 

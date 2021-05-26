@@ -11,6 +11,14 @@
 
 using namespace std;
 
+#if (MAV_SELECT == LEADER)
+#define FORCE_SERIAL_MSG_SIZE 16
+#endif
+
+#if (MAV_SELECT == FOLLOWER) && (MAV_SELECT!=LEADER)
+#define FORCE_SERIAL_MSG_SIZE 20
+#endif
+
 int serial_fd = 0;
 
 void serial_init(char *port_name, int baudrate)
@@ -92,15 +100,7 @@ static uint8_t generate_force_checksum_byte(uint8_t *payload, int payload_count)
 }
 
 // void send_pose_to_serial(std::queue<float> send_to_stm32)
-#if (MAV_SELECT == LEADER)
-#define FORCE_SERIAL_MSG_SIZE 16
-void send_pose_to_serial(float force_x, float force_y, float force_z)
-#endif
-
-#if (MAV_SELECT == FOLLOWER) && (MAV_SELECT!=LEADER)
-#define FORCE_SERIAL_MSG_SIZE 20
-void send_pose_to_serial(float force_x, float force_y, float force_z, float payload_yaw)
-#endif
+void send_pose_to_serial(float * send_to_serial_msg)
 {
 /*
 	ROS_INFO("[%fHz], position=(x:%.2f, y:%.2f, z:%.2f), "
@@ -111,6 +111,12 @@ void send_pose_to_serial(float force_x, float force_y, float force_z, float payl
                  quat_x *100.0f , quat_y *100.0f, quat_z *100.0f, quat_w,vel_x,vel_y,vel_z);
 */
 	// int message_size = send_to_stm32.size() + 4;
+
+
+	float force_x = send_to_serial_msg[1];
+	float force_y = send_to_serial_msg[2];
+	float force_z = send_to_serial_msg[3];
+
 	char msg_buf[FORCE_SERIAL_MSG_SIZE] = {0};
 	int msg_pos = 0;
 
@@ -131,10 +137,11 @@ void send_pose_to_serial(float force_x, float force_y, float force_z, float payl
 	memcpy(msg_buf + msg_pos, &force_z, sizeof(float));
 	msg_pos += sizeof(float);
 
-#if (MAV_SELECT == FOLLOWER) && (MAV_SELECT!=LEADER)
-	memcpy(msg_buf + msg_pos, &payload_yaw, sizeof(float));
-	msg_pos += sizeof(float);
-#endif
+	if(send_to_serial_msg[0] == 4.0f){
+		float payload_yaw = send_to_serial_msg[4];
+		memcpy(msg_buf + msg_pos, &payload_yaw, sizeof(float));
+		msg_pos += sizeof(float);
+	}
 
 	//while(!send_to_stm32.empty())
 	//{
