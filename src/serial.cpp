@@ -8,16 +8,15 @@
 #include <string>
 #include "ros/ros.h"
 #include <queue>
+#include "proj_conf.h"
 
 using namespace std;
 
-// #if (MAV_SELECT == LEADER)
-// #define FORCE_SERIAL_MSG_SIZE 16
-// #endif
-
-// #if (MAV_SELECT == FOLLOWER) && (MAV_SELECT!=LEADER)
+#if (MAV_SELECT == LEADER)
+#define FORCE_SERIAL_MSG_SIZE 16
+#elif (MAV_SELECT == FOLLOWER)
 #define FORCE_SERIAL_MSG_SIZE 20
-// #endif
+#endif
 
 int serial_fd = 0;
 

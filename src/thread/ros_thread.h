@@ -2,16 +2,17 @@
 #include "geometry_msgs/PoseStamped.h"
 #include <tf/transform_datatypes.h>
 #include <queue>
+#include "proj_conf.h"
 #ifndef __ROS_THREAD_H__
 #define __ROS_THREAD_H__
 
-//#if (MAV_SELECT == FOLLOWER)
+#if (MAV_SELECT == FOLLOWER)
 void ukf_force_callback(geometry_msgs::Point force);
 void optitrack_callback(const geometry_msgs::PoseStamped::ConstPtr& msg);
 
-//#else
+#elif (MAV_SELECT == LEADER)
 void controller_force_callback(geometry_msgs::Point force);
-//#endif
+#endif
 
 int ros_thread_entry();
 

@@ -16,7 +16,8 @@ mutex ros_mutex;
 queue<float> send_to_stm32;
 float ground_truth_yaw;
 
-//#if (MAV_SELECT == FOLLOWER)
+#if (MAV_SELECT == FOLLOWER)
+#pragma message("I'm follower!")
 void ukf_force_callback(geometry_msgs::Point force)
 {
 	// send_to_stm32.push(force.x);
@@ -25,13 +26,8 @@ void ukf_force_callback(geometry_msgs::Point force)
 	// send_pose_to_serial(send_to_stm32);
 	// send_to_stm32 = queue<float>();
 
-#if (MAV_SELECT == FOLLOWER)
-	cout << "Hehe" << endl;
-#pragma message("I'm follower!")
-#else
-	cout << "Haha" << endl;
-#pragma message("I'm leader!")
-#endif
+
+
 	std::cout << ground_truth_yaw << std::endl;
 	//send_pose_to_serial(force.x, force.y, force.z, ground_truth_yaw);
 	//ROS_INFO_STREAM("MAV is " << MAV_);
@@ -56,7 +52,8 @@ void optitrack_callback(const geometry_msgs::PoseStamped::ConstPtr& msg)
 }
 //#endif
 
-#if (MAV_SELECT == LEADER)
+#elif (MAV_SELECT == LEADER)
+#pragma message("I'm leader!")
 void controller_force_callback(geometry_msgs::Point force)
 {
 	// send_to_stm32.push(force.x);
@@ -66,7 +63,7 @@ void controller_force_callback(geometry_msgs::Point force)
 	// send_to_stm32 = queue<float>();
 	// send_pose_to_serial(force.x, force.y, force.z);
 	float leader_send_to_serial[4] = {3.0f, float(force.x), float(force.y), float(force.z)};
-	//send_pose_to_serial(leader_send_to_serial);
+	send_pose_to_serial(leader_send_to_serial);
 }
 #endif
 
@@ -75,9 +72,10 @@ int ros_thread_entry(){
 #if (MAV_SELECT == LEADER)
 	ros::Subscriber ctrl_sub = n.subscribe("/controller_force",1000,controller_force_callback);
 
-#endif
+#elif (MAV_SELECT == FOLLOWER)
 	ros::Subscriber optitrack_sub = n.subscribe("/vrpn_client_node/payload/pose",1000, optitrack_callback);
 	ros::Subscriber ukf_sub = n.subscribe("force_estimate",1000,ukf_force_callback);
+#endif
 
 	ros::spin();
 	return 0;
