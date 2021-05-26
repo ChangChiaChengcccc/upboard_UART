@@ -11,13 +11,13 @@
 
 using namespace std;
 
-#if (MAV_SELECT == LEADER)
-#define FORCE_SERIAL_MSG_SIZE 16
-#endif
+// #if (MAV_SELECT == LEADER)
+// #define FORCE_SERIAL_MSG_SIZE 16
+// #endif
 
-#if (MAV_SELECT == FOLLOWER) && (MAV_SELECT!=LEADER)
+// #if (MAV_SELECT == FOLLOWER) && (MAV_SELECT!=LEADER)
 #define FORCE_SERIAL_MSG_SIZE 20
-#endif
+// #endif
 
 int serial_fd = 0;
 
@@ -100,7 +100,7 @@ static uint8_t generate_force_checksum_byte(uint8_t *payload, int payload_count)
 }
 
 // void send_pose_to_serial(std::queue<float> send_to_stm32)
-void send_pose_to_serial(float * send_to_serial_msg)
+void send_pose_to_serial(float *send_to_serial_msg)
 {
 /*
 	ROS_INFO("[%fHz], position=(x:%.2f, y:%.2f, z:%.2f), "
