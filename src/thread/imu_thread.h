@@ -18,7 +18,9 @@ typedef struct {
 
 } imu_t ;
 
-void force_cb(geometry_msgs::Point force);
+void ukf_force_cb(geometry_msgs::Point force);
+
+void controller_force_cb(geometry_msgs::Point force);
 
 double calc_deviation(double*);
 

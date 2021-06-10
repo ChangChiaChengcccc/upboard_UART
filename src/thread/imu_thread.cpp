@@ -13,10 +13,12 @@
 #include <nav_msgs/Odometry.h>
 #include "upboard_ukf/serial.hpp"
 #include "ros_thread.h"
+#include "proj_conf.h"
 
 using namespace std;
 
-float ukf_force[3] = {0};
+float ukf_force[3] = {0.0f};
+float controller_force[3] = {0.0f};
 
 mutex imu_mutex;
 imu_t imu;
@@ -91,18 +93,29 @@ void imu_buf_push(uint8_t c)
 	}
 }
 
-void force_cb(geometry_msgs::Point force)
+void ukf_force_cb(geometry_msgs::Point force)
 {
 	ukf_force[0] = force.x;
 	ukf_force[1] = force.y;
 	ukf_force[2] = force.z;
 }
 
+void controller_force_cb(geometry_msgs::Point force)
+{
+	controller_force[0] = force.x;
+	controller_force[1] = force.y;
+	controller_force[2] = force.z;
+}
+
 int imu_thread_entry(){
 	sensor_msgs::Imu IMU_data;
 	geometry_msgs::WrenchStamped thrust_data;
 	ros::NodeHandle n;
-	ros::Subscriber sub = n.subscribe("force_estimate",1000,force_cb);
+#if (MAV_SELECT == FOLLOWER)
+	ros::Subscriber sub = n.subscribe("force_estimate",1000,ukf_force_cb);
+#elif (MAV_SELECT == LEADER)
+	ros::Subscriber ctrl_sub = n.subscribe("/controller_force",1000,controller_force_cb);
+#endif
 	ros::Publisher omega_pub = n.advertise<sensor_msgs::Imu>("imu/data_raw", 5);
 	ros::Publisher thrust_pub = n.advertise<geometry_msgs::WrenchStamped>("/rotor_all_ft", 5);
 	ros::Publisher yaw_pub = n.advertise<geometry_msgs::Pose2D>("/stm32_payload_yaw",5);
@@ -127,7 +140,11 @@ int imu_thread_entry(){
 			{
 				for(int i =0;i<IMU_SERIAL_MSG_SIZE;i++)
 					cout << "s";
+#if (MAV_SELECT == FOLLOWER)
 				printf("\t UKF estimated force  x: %f  y: %f  z: %f\n", ukf_force[0], ukf_force[1], ukf_force[2]);
+#elif (MAV_SELECT == LEADER)
+				printf("\t controller force  x: %f  y: %f  z: %f\n", controller_force[0], controller_force[1], controller_force[2]);
+#endif
 				if(imu_decode(imu.buf)==0)
 				{
 					IMU_data.header.stamp = ros::Time::now();
