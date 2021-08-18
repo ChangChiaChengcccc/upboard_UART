@@ -1,5 +1,7 @@
 <launch>
   <include file="$(find vrpn_client_ros)/launch/sample.launch" />
-  <node name="ukf_to_controller" pkg="upboard_ukf" type="ukf_to_controller" output="screen"/>
+  <include file="$(find mavros)/launch/px4.launch" />
+  <node name="ukf_to_controller" pkg="upboard_ukf" type="ukf_to_controller" />
+  <node name="leader_controller" pkg="leader" type="leader_controller" output="screen" />
   <node name="second_ukf" pkg="second_ukf" type="second_ukf"/>
 </launch>
