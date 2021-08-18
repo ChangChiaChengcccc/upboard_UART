@@ -15,10 +15,13 @@ using namespace std;
 mutex ros_mutex;
 queue<float> send_to_stm32;
 float ground_truth_yaw;
+// geometry_msgs::Pose2D payload_data;
+
+UKF_force_class UKF_force;
 
 #if (MAV_SELECT == FOLLOWER)
 #pragma message("I'm follower!")
-void ukf_force_callback(geometry_msgs::Point force)
+void UKF_force_class::ukf_force_callback(geometry_msgs::Point force)
 {
 	// send_to_stm32.push(force.x);
 	// send_to_stm32.push(force.y);
@@ -33,6 +36,7 @@ void ukf_force_callback(geometry_msgs::Point force)
 	//ROS_INFO_STREAM("MAV is " << MAV_);
 	float follower_send_to_serial[5] = {4.0f, float(force.x), float(force.y), float(force.z), ground_truth_yaw};
 	send_pose_to_serial(follower_send_to_serial);
+	payload_yaw_pub.publish(UKF_force_class::payload_data);
 }
 
 void optitrack_callback(const geometry_msgs::PoseStamped::ConstPtr& msg)
@@ -49,6 +53,7 @@ void optitrack_callback(const geometry_msgs::PoseStamped::ConstPtr& msg)
 	tf::Quaternion quaternion(quaternion_x, quaternion_y, quaternion_z, quaternion_w);
 	tf::Matrix3x3(quaternion).getRPY(payload_roll, payload_pitch, payload_yaw);
 	ground_truth_yaw = payload_yaw;
+	UKF_force.payload_data.theta = payload_yaw;
 }
 //#endif
 
@@ -68,13 +73,13 @@ void controller_force_callback(geometry_msgs::Point force)
 #endif
 
 int ros_thread_entry(){
-	ros::NodeHandle n;
+
 #if (MAV_SELECT == LEADER)
-	ros::Subscriber ctrl_sub = n.subscribe("/controller_force",1000,controller_force_callback);
+	ros::Subscriber ctrl_sub = UKF_force.n.subscribe("/controller_force",1000,controller_force_callback);
 
 #elif (MAV_SELECT == FOLLOWER)
-	ros::Subscriber optitrack_sub = n.subscribe("/vrpn_client_node/payload/pose",1000, optitrack_callback);
-	ros::Subscriber ukf_sub = n.subscribe("force_estimate",1000,ukf_force_callback);
+	ros::Subscriber optitrack_sub = UKF_force.n.subscribe("/vrpn_client_node/payload/pose",1000, optitrack_callback);
+	ros::Subscriber ukf_sub = UKF_force.n.subscribe("force_estimate",1000,&UKF_force_class::ukf_force_callback,&UKF_force);
 #endif
 
 	ros::spin();
