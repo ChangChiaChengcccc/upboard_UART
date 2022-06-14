@@ -4,7 +4,6 @@
 #include<upboard_ukf/serial.hpp>
 #include"thread/ros_thread.h"
 #include"thread/imu_thread.h"
-#include "proj_conf.h"
 
 using namespace std;
 

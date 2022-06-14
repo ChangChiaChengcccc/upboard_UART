@@ -10,6 +10,7 @@ add_compile_options(-std=c++11)
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
+  genmsg
   std_msgs
   nav_msgs
   tf2_ros
@@ -120,8 +121,10 @@ catkin_package(
 
 set(INC
     ./
-    ./src
-    ./src/thread
+    ./src/liojg
+    ./src/liojg/thread
+    ./src/ukf_node/thread
+    ./include/upboard_ukf
     ../proj
 )
 
@@ -136,10 +139,10 @@ include_directories(
 
 ## Declare a C++ library
  add_library(${PROJECT_NAME}
-   src/main.cpp
-   src/serial.cpp
-   src/thread/imu_thread.cpp
-   src/thread/ros_thread.cpp
+   src/liojg/main.cpp
+  src/liojg/serial.cpp
+  src/liojg/thread/imu_thread.cpp
+  src/liojg/thread/ros_thread.cpp
  )
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -222,11 +225,19 @@ include_directories(
 # catkin_add_nosetests(test)
 
 add_executable(ukf_to_controller
-  src/main.cpp
-  src/serial.cpp
-  src/thread/imu_thread.cpp
-  src/thread/ros_thread.cpp
+  src/liojg/main.cpp
+  src/liojg/serial.cpp
+  src/liojg/thread/imu_thread.cpp
+  src/liojg/thread/ros_thread.cpp
 )
 target_link_libraries(ukf_to_controller
   ${catkin_LIBRARIES}
 )
+
+add_executable(ukf_node 
+  src/ukf_node/main.cpp
+  src/ukf_node/serial.cpp
+  src/ukf_node/thread/data_receive.cpp
+#  src/ukf_node/thread/data_transmit.cpp
+)
+target_link_libraries(ukf_node ${catkin_LIBRARIES})

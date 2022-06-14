@@ -13,7 +13,6 @@
 #include <nav_msgs/Odometry.h>
 #include "upboard_ukf/serial.hpp"
 #include "ros_thread.h"
-#include "proj_conf.h"
 
 using namespace std;
 

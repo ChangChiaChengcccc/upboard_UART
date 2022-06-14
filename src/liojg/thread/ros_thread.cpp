@@ -8,7 +8,6 @@
 #include "geometry_msgs/Point.h"
 #include <queue>
 #include <tf/transform_datatypes.h>
-#include "proj_conf.h"
 
 using namespace std;
 
@@ -73,14 +72,6 @@ void controller_force_callback(geometry_msgs::Point force)
 #endif
 
 int ros_thread_entry(){
-
-#if (MAV_SELECT == LEADER)
-	ros::Subscriber ctrl_sub = UKF_force.n.subscribe("/controller_force",1000,controller_force_callback);
-
-#elif (MAV_SELECT == FOLLOWER)
-	ros::Subscriber optitrack_sub = UKF_force.n.subscribe("/vrpn_client_node/payload/pose",1000, optitrack_callback);
-	ros::Subscriber ukf_sub = UKF_force.n.subscribe("force_estimate",1000,&UKF_force_class::ukf_force_callback,&UKF_force);
-#endif
 
 	ros::spin();
 	return 0;

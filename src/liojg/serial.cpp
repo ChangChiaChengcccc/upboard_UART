@@ -8,7 +8,6 @@
 #include <string>
 #include "ros/ros.h"
 #include <queue>
-#include "proj_conf.h"
 
 using namespace std;
 

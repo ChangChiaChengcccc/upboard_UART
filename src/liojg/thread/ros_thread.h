@@ -2,7 +2,6 @@
 #include "geometry_msgs/PoseStamped.h"
 #include <tf/transform_datatypes.h>
 #include <queue>
-#include "proj_conf.h"
 #include <geometry_msgs/Pose2D.h>
 #ifndef __ROS_THREAD_H__
 #define __ROS_THREAD_H__
