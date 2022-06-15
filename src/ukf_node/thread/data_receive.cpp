@@ -2,6 +2,8 @@
 #include <upboard_ukf/serial.hpp>
 #include <sensor_msgs/Imu.h>
 #include <geometry_msgs/WrenchStamped.h>
+#include <std_msgs/Float32MultiArray.h>
+#include <geometry_msgs/Point.h>
 #include <std_msgs/Int32.h>
 #include "ros/ros.h"
 #include <mutex>
@@ -113,7 +115,19 @@ void imu_buf_push(uint8_t c)
 
 
 int data_process(ros::NodeHandle *n){
-	
+	geometry_msgs::Point pos_enu;
+	sensor_msgs::Imu gyro;
+	geometry_msgs::WrenchStamped f1_cmd, f2_cmd, f3_cmd, f4_cmd;
+	std_msgs::Float32MultiArray RotMat;
+
+
+	ros::Publisher pos_enu_pub = n->advertise<geometry_msgs::Point>("/pos_enu", 5);
+	ros::Publisher gyro_pub = n->advertise<sensor_msgs::Imu>("/angular_vel", 5);
+	ros::Publisher f1_cmd_pub = n->advertise<geometry_msgs::WrenchStamped>("/f1_cmd", 5);
+	ros::Publisher f2_cmd_pub = n->advertise<geometry_msgs::WrenchStamped>("/f2_cmd", 5);
+	ros::Publisher f3_cmd_pub = n->advertise<geometry_msgs::WrenchStamped>("/f3_cmd", 5);
+	ros::Publisher f4_cmd_pub = n->advertise<geometry_msgs::WrenchStamped>("/f4_cmd", 5);
+	ros::Publisher RotMat_pub = n->advertise<std_msgs::Float32MultiArray>("/RotMat_arr", 5);
 	char c;
 	imu.buf_pos = 0;
 	while(ros::ok()){
@@ -139,13 +153,58 @@ int data_process(ros::NodeHandle *n){
 					//cout << "f2_cmd:" << imu.f2_cmd << endl;
 					//cout << "f3_cmd:" << imu.f3_cmd << endl;
 					//cout << "f4_cmd:" << imu.f4_cmd << endl;
-
+					/*
 					cout << "imu.RotMat_arr:" << imu.RotMat_arr[0] << endl;
 					cout << "imu.RotMat_arr:" << imu.RotMat_arr[4] << endl;
 					cout << "imu.RotMat_arr:" << imu.RotMat_arr[8] << endl;
+					*/
+					/*
+					pos_enu.x = imu.pos_enu[0];
+					pos_enu.y = imu.pos_enu[1];
+					pos_enu.z = imu.pos_enu[2];
+					
+					gyro.angular_velocity.x = imu.gyro[0];
+					gyro.angular_velocity.y = imu.gyro[1];
+					gyro.angular_velocity.z = imu.gyro[2];	
+
+					f1_cmd.wrench.force.z = imu.f1_cmd;
+					f2_cmd.wrench.force.z = imu.f2_cmd;
+					f3_cmd.wrench.force.z = imu.f3_cmd;
+					f4_cmd.wrench.force.z = imu.f4_cmd;
+					*/
+					RotMat.data ={
+									imu.RotMat_arr[0],imu.RotMat_arr[1],imu.RotMat_arr[2],
+									imu.RotMat_arr[3],imu.RotMat_arr[4],imu.RotMat_arr[5],
+									imu.RotMat_arr[6],imu.RotMat_arr[7],imu.RotMat_arr[8],
+								 };
+					/*
+					RotMat.data = [imu.RotMat_arr[0] imu.RotMat_arr[1]]
+					RotMat.data[1] = imu.RotMat_arr[1];
+					RotMat.data[2] = imu.RotMat_arr[2];
+					RotMat.data[3] = imu.RotMat_arr[3];
+					RotMat.data[4] = imu.RotMat_arr[4];
+					RotMat.data[5] = imu.RotMat_arr[5];
+					RotMat.data[6] = imu.RotMat_arr[6];
+					RotMat.data[7] = imu.RotMat_arr[7];
+					RotMat.data[8] = imu.RotMat_arr[8];
+					array = {1 2 3}
 
 					cout << "decode suceed!" << endl;
+					*/
 					//pub & sub
+					/*
+					pos_enu_pub.publish(pos_enu);
+					
+					gyro_pub.publish(gyro);
+
+					f1_cmd_pub.publish(f1_cmd);
+					f2_cmd_pub.publish(f2_cmd);
+					f3_cmd_pub.publish(f3_cmd);
+					f4_cmd_pub.publish(f4_cmd);
+					*/
+					RotMat_pub.publish(RotMat);
+					
+
 				}
 			}
 		}
