@@ -14,7 +14,6 @@
 #include <nav_msgs/Odometry.h>
 #include "upboard_ukf/serial.hpp"
 #include "data_receive.h"
-#include "data_transmit.h"
 
 using namespace std;
 
@@ -62,7 +61,7 @@ int data_decode(uint8_t *buf){
 		printf("oh no garbage message!\n");
 		return 1; //error detected
 	}
-
+	
 	memcpy(&imu.pos_enu[0], &buf[2], sizeof(float));
 	memcpy(&imu.pos_enu[1], &buf[6], sizeof(float));
 	memcpy(&imu.pos_enu[2], &buf[10], sizeof(float));
@@ -82,15 +81,16 @@ int data_decode(uint8_t *buf){
 	memcpy(&imu.RotMat_arr[5], &buf[62], sizeof(float));
 	memcpy(&imu.RotMat_arr[6], &buf[66], sizeof(float));
 	memcpy(&imu.RotMat_arr[7], &buf[70], sizeof(float));
-	memcpy(&imu.RotMat_arr[8], &buf[74],sizeof(float));
+	memcpy(&imu.RotMat_arr[8], &buf[74], sizeof(float));
 
-	
-	// float enu_acc_x, enu_acc_y, enu_acc_z;
+	memcpy(&imu.vel_enu[0], &buf[78], sizeof(float));
+	memcpy(&imu.vel_enu[1], &buf[82], sizeof(float));
+	memcpy(&imu.vel_enu[2], &buf[86], sizeof(float));
 
-	/* swap the order of quaternion to make the frame consistent with ahrs' rotation order */
-	//memcpy(&imu.gyrop[0], &buf[6], sizeof(float));
-	//memcpy(&imu.gyrop[1], &buf[10], sizeof(float));
-	//memcpy(&imu.gyrop[2], &buf[14], sizeof(float));
+	memcpy(&imu.acc_enu[0], &buf[90], sizeof(float));
+	memcpy(&imu.acc_enu[1], &buf[94], sizeof(float));
+	memcpy(&imu.acc_enu[2], &buf[98], sizeof(float));
+
 	return 0;
 }
 
@@ -115,41 +115,38 @@ void imu_buf_push(uint8_t c)
 
 
 int data_process(ros::NodeHandle *n){
-	geometry_msgs::Point pos_enu;
-	sensor_msgs::Imu gyro;
-	geometry_msgs::WrenchStamped f1_cmd, f2_cmd, f3_cmd, f4_cmd;
-	std_msgs::Float32MultiArray RotMat;
+	cout << "test1" << endl;
+	geometry_msgs::Point pos_enu,gyro,vel_enu,acc_enu;
+	std_msgs::Float32MultiArray RotMat,f1_cmd, f2_cmd, f3_cmd, f4_cmd;
 
 
 	ros::Publisher pos_enu_pub = n->advertise<geometry_msgs::Point>("/pos_enu", 5);
-	ros::Publisher gyro_pub = n->advertise<sensor_msgs::Imu>("/angular_vel", 5);
-	ros::Publisher f1_cmd_pub = n->advertise<geometry_msgs::WrenchStamped>("/f1_cmd", 5);
-	ros::Publisher f2_cmd_pub = n->advertise<geometry_msgs::WrenchStamped>("/f2_cmd", 5);
-	ros::Publisher f3_cmd_pub = n->advertise<geometry_msgs::WrenchStamped>("/f3_cmd", 5);
-	ros::Publisher f4_cmd_pub = n->advertise<geometry_msgs::WrenchStamped>("/f4_cmd", 5);
-	ros::Publisher RotMat_pub = n->advertise<std_msgs::Float32MultiArray>("/RotMat_arr", 5);
+	ros::Publisher gyro_pub = n->advertise<geometry_msgs::Point>("/angular_vel", 5);
+	ros::Publisher f1_cmd_pub = n->advertise<std_msgs::Float32MultiArray>("/f1_cmd", 5);
+	ros::Publisher f2_cmd_pub = n->advertise<std_msgs::Float32MultiArray>("/f2_cmd", 5);
+	ros::Publisher f3_cmd_pub = n->advertise<std_msgs::Float32MultiArray>("/f3_cmd", 5);
+	ros::Publisher f4_cmd_pub = n->advertise<std_msgs::Float32MultiArray>("/f4_cmd", 5);
+	ros::Publisher RotMat_pub = n->advertise<std_msgs::Float32MultiArray>("/RotMat_ned", 5);
 	char c;
 	imu.buf_pos = 0;
 	while(ros::ok()){
 		if(serial_getc(&c) != -1) {
 			imu_buf_push(c);
-			
 			if(imu.buf[0]=='@' && imu.buf[IMU_SERIAL_MSG_SIZE - 1 ] == '+')
 			{
-				//for(int i =0;i<IMU_SERIAL_MSG_SIZE;i++)
-				//	cout << "s";
-
 				if(data_decode(imu.buf)==0)
 				{
+					
 					/*
-					cout << "imu.pos_enu_x:" << imu.pos_enu[0] << endl;
-					cout << "imu.pos_enu_y:" << imu.pos_enu[1] << endl;
-					cout << "imu.pos_enu_z:" << imu.pos_enu[2] << endl;
-
+					cout << "pos_enu_x:" << imu.pos_enu[0] << endl;
+					cout << "pos_enu_y:" << imu.pos_enu[1] << endl;
+					cout << "pos_enu_z:" << imu.pos_enu[2] << endl;
+					
+					
 					cout << "gyro_x:" << imu.gyro[0] << endl;
 					cout << "gyro_y:" << imu.gyro[1] << endl;
-					cout << "gyro_z:" << imu.gyro[2] << endl;
-
+					cout << "gyro_z:" << imu.gyro[2] << endl << endl;
+					
 					cout << "f1_cmd:" << imu.f1_cmd << endl;
 					cout << "f2_cmd:" << imu.f2_cmd << endl;
 					cout << "f3_cmd:" << imu.f3_cmd << endl;
@@ -158,28 +155,43 @@ int data_process(ros::NodeHandle *n){
 					cout << "imu.RotMat_arr:" << imu.RotMat_arr[0] << endl;
 					cout << "imu.RotMat_arr:" << imu.RotMat_arr[4] << endl;
 					cout << "imu.RotMat_arr:" << imu.RotMat_arr[8] << endl;
+
+					cout << "vel_enu_x:" << imu.vel_enu[0] << endl;
+					cout << "vel_enu_y:" << imu.vel_enu[1] << endl;
+					cout << "vel_enu_z:" << imu.vel_enu[2] << endl;
+
+					cout << "acc_enu_x:" << imu.acc_enu[0] << endl;
+					cout << "acc_enu_y:" << imu.acc_enu[1] << endl;
+					cout << "acc_enu_z:" << imu.acc_enu[2] << endl;
 					*/
 					
 					pos_enu.x = imu.pos_enu[0];
 					pos_enu.y = imu.pos_enu[1];
 					pos_enu.z = imu.pos_enu[2];
 					
-					gyro.angular_velocity.x = imu.gyro[0];
-					gyro.angular_velocity.y = imu.gyro[1];
-					gyro.angular_velocity.z = imu.gyro[2];	
+					gyro.x = imu.gyro[0];
+					gyro.y = imu.gyro[1];
+					gyro.z = imu.gyro[2];	
 
-					f1_cmd.wrench.force.z = imu.f1_cmd;
-					f2_cmd.wrench.force.z = imu.f2_cmd;
-					f3_cmd.wrench.force.z = imu.f3_cmd;
-					f4_cmd.wrench.force.z = imu.f4_cmd;
+					f1_cmd.data = {imu.f1_cmd};
+					f2_cmd.data = {imu.f2_cmd};
+					f3_cmd.data = {imu.f3_cmd};
+					f4_cmd.data = {imu.f4_cmd};
 					
 					RotMat.data ={
 									imu.RotMat_arr[0],imu.RotMat_arr[1],imu.RotMat_arr[2],
 									imu.RotMat_arr[3],imu.RotMat_arr[4],imu.RotMat_arr[5],
 									imu.RotMat_arr[6],imu.RotMat_arr[7],imu.RotMat_arr[8],
 								 };
-					
-					cout << "decode suceed!" << endl;
+
+					vel_enu.x = imu.vel_enu[0];
+					vel_enu.y = imu.vel_enu[1];
+					vel_enu.z = imu.vel_enu[2];
+
+					acc_enu.x = imu.acc_enu[0];
+					acc_enu.y = imu.acc_enu[1];
+					acc_enu.z = imu.acc_enu[2];
+
 					
 					//pub & sub
 					pos_enu_pub.publish(pos_enu);

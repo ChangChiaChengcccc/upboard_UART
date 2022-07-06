@@ -49,8 +49,11 @@ void serial_init(char *port_name, int baudrate)
 	case 115200:
 		options.c_cflag |= B115200;
 		break;
+	case 230400:
+		options.c_cflag |= B230400;
+		break;
 	default:
-		ROS_FATAL("Unknown baudrate. try 9600, 57600, 115200 or check \"serial.cpp\".");
+		ROS_FATAL("Unknown baudrate. try 9600, 57600, 115200, 230400 or check \"serial.cpp\".");
 		exit(0);
 	}
 
@@ -101,16 +104,6 @@ static uint8_t generate_force_checksum_byte(uint8_t *payload, int payload_count)
 void send_pose_to_serial(float *send_to_serial_msg)
 //void send_pose_to_serial(float force_x, float force_y, float force_z, float payload_yaw)
 {
-/*
-	ROS_INFO("[%fHz], position=(x:%.2f, y:%.2f, z:%.2f), "
-                 "orientation=(x:%.2f, y:%.2f, z:%.2f, w:%.2f),"
-		"velocity=(x:%.2f,y:%.2f,z:%.2f)",
-        	 real_freq,
-             	pos_x_m * 100.0f, pos_y_m * 100.0f, pos_z_m * 100.0f,
-                 quat_x *100.0f , quat_y *100.0f, quat_z *100.0f, quat_w,vel_x,vel_y,vel_z);
-*/
-	// int message_size = send_to_stm32.size() + 4;
-
 
 	float force_x = send_to_serial_msg[1];
 	float force_y = send_to_serial_msg[2];
@@ -142,19 +135,6 @@ void send_pose_to_serial(float *send_to_serial_msg)
 		msg_pos += sizeof(float);
 	}
 
-	//while(!send_to_stm32.empty())
-	//{
-	//	memcpy(msg_buf + msg_pos, &send_to_stm32.front(), sizeof(float));
-	//	msg_pos += sizeof(float);
-	//	send_to_stm32.pop();
-	//}
-
-	// for(int i=0;i<message_size-4;i++)
-	// {
-	// 	memcpy(msg_buf + msg_pos, &send_to_stm32.front(), sizeof(float));
-	// 	msg_pos += sizeof(float);
-	// 	send_to_stm32.pop();
-	// }
 
     msg_buf[msg_pos] = '+'; //end byte
 	msg_pos += sizeof(uint8_t);

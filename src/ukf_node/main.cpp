@@ -40,20 +40,15 @@ void hehe(ros::NodeHandle *n){
 int main(int argc, char **argv)
 {
 	ros::init(argc, argv, "ukf_node");
-	serial_init((char *)"/dev/ttyUSB0", 115200);
+	serial_init((char *)"/dev/ttyUSB0", 230400);
 	ros::NodeHandle n;
 
-	ros::Rate loop_rate(10);
+	ros::Rate loop_rate(40);
 
 	int count = 0;
-
 	//std::thread thread_talker(haha,&n);	//test
 	//std::thread thread_listener(hehe,&n);	//test
 	std::thread thread_receiver(data_process,&n); //get_imu data from stm32
-
-	//thread_talker.join();
-	//thread_listener.join();
-	thread_receiver.join();
 
 	while (ros::ok())
 	{

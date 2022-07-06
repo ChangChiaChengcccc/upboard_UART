@@ -3,14 +3,18 @@
 #ifndef __IMU_THREAD_H__
 #define __IMU_THREAD_H__
 
-#define IMU_SERIAL_MSG_SIZE 79
+#define IMU_SERIAL_MSG_SIZE 103
 #define IMU_CHECKSUM_INIT_VAL 0
 typedef struct {
 	volatile int buf_pos;	
 
-	uint8_t buf[];
+	uint8_t buf[200];
 
 	float pos_enu[3];
+
+	float vel_enu[3];
+
+	float acc_enu[3];
 
 	float gyro[3];
 
