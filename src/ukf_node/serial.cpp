@@ -11,11 +11,9 @@
 
 using namespace std;
 
-#if (MAV_SELECT == LEADER)
-#define FORCE_SERIAL_MSG_SIZE 16
-#elif (MAV_SELECT == FOLLOWER)
-#define FORCE_SERIAL_MSG_SIZE 20
-#endif
+
+#define EFFICIENCY_SERIAL_MSG_SIZE 19
+
 
 int serial_fd = 0;
 
@@ -100,49 +98,42 @@ static uint8_t generate_force_checksum_byte(uint8_t *payload, int payload_count)
 	return result;
 }
 
-// void send_pose_to_serial(std::queue<float> send_to_stm32)
+
 void send_pose_to_serial(float *send_to_serial_msg)
-//void send_pose_to_serial(float force_x, float force_y, float force_z, float payload_yaw)
 {
 
-	float force_x = send_to_serial_msg[1];
-	float force_y = send_to_serial_msg[2];
-	float force_z = send_to_serial_msg[3];
+	float e1 = send_to_serial_msg[0];
+	float e2 = send_to_serial_msg[1];
+	float e3 = send_to_serial_msg[2];
+	float e4 = send_to_serial_msg[3];
 
-	char msg_buf[FORCE_SERIAL_MSG_SIZE] = {0};
+	char msg_buf[EFFICIENCY_SERIAL_MSG_SIZE] = {0};
 	int msg_pos = 0;
 
 	/* reserve 2 for start byte and checksum byte as header */
 	msg_buf[msg_pos] = '@'; //start byte
 	msg_pos += sizeof(uint8_t);
-	msg_buf[msg_pos] = 0;
-	msg_pos += sizeof(uint8_t);
-	msg_buf[msg_pos] = 0;//tracker_if
+	msg_buf[msg_pos] = 0; // checksum
 	msg_pos += sizeof(uint8_t);
 
 	/* pack payloads */
-	//force
-	memcpy(msg_buf + msg_pos, &force_x, sizeof(float));
+	// efficiency
+	memcpy(msg_buf + msg_pos, &e1, sizeof(float));
 	msg_pos += sizeof(float);
-	memcpy(msg_buf + msg_pos, &force_y, sizeof(float));
+	memcpy(msg_buf + msg_pos, &e2, sizeof(float));
 	msg_pos += sizeof(float);
-	memcpy(msg_buf + msg_pos, &force_z, sizeof(float));
+	memcpy(msg_buf + msg_pos, &e3, sizeof(float));
+	msg_pos += sizeof(float);
+	memcpy(msg_buf + msg_pos, &e4, sizeof(float));
 	msg_pos += sizeof(float);
 
-	if(send_to_serial_msg[0] == 4.0f){
-		float payload_yaw = send_to_serial_msg[4];
-		memcpy(msg_buf + msg_pos, &payload_yaw, sizeof(float));
-		msg_pos += sizeof(float);
-	}
-
-
-    msg_buf[msg_pos] = '+'; //end byte
+   	msg_buf[msg_pos] = '+'; //end byte
 	msg_pos += sizeof(uint8_t);
 
 	/* generate and fill the checksum field */
-	msg_buf[1] = generate_force_checksum_byte((uint8_t *)&msg_buf[3], FORCE_SERIAL_MSG_SIZE - 4);
+	msg_buf[1] = generate_force_checksum_byte((uint8_t *)&msg_buf[2], EFFICIENCY_SERIAL_MSG_SIZE - 3);
 
-	serial_puts(msg_buf, FORCE_SERIAL_MSG_SIZE);
+	serial_puts(msg_buf, EFFICIENCY_SERIAL_MSG_SIZE);
 }
 
 int serial_getc(char *c)

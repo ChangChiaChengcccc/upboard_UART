@@ -115,7 +115,6 @@ void imu_buf_push(uint8_t c)
 
 
 int data_process(ros::NodeHandle *n){
-	cout << "test1" << endl;
 	geometry_msgs::Point pos_enu,gyro,vel_enu,acc_enu;
 	std_msgs::Float32MultiArray RotMat,f1_cmd, f2_cmd, f3_cmd, f4_cmd;
 
